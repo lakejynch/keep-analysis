@@ -28,10 +28,7 @@ def update_position(position, date, btcusd, ethusd):
 # iterate through date range, each day (1) create a new position, (2) update existing positions
 def run_test(inputs, ohlc):
 	test = {}
-	benchmarks = {"init c-ratio":[],"courtesy call":[],"liquidation":[]}
 	for t in inputs["date_rng"]:
-		for key in benchmarks.keys():
-			benchmarks[key].append(inputs[key])
 		btcusd = ohlc["btcusd"]["open"].at[t]
 		ethusd = ohlc["ethusd"]["open"].at[t]
 		# i want to use this, but haven't figured out how yet
@@ -43,13 +40,31 @@ def run_test(inputs, ohlc):
 		test[str(t)[:10]] = create_position(inputs, str(t)[:10], btcusd, ethusd)
 	with open("data/test.json", "w") as jf:
 		json.dump(test, jf)
-	return benchmarks
+	return test
 
 # function for reading/loading test data
 def load_test():
 	with open("data/test.json", "r") as jf:
 		test = json.load(jf)
 	return test
+
+# dont need all that data, lets cut out a bunch of it here
+def compress_data():
+	test = load_test()
+	compressed = {}
+	for t, position in test.items():
+		compressed[t] = {"timestamp":position["timestamp"],"c-ratio":position["c-ratio"]}
+	with open("data/small_test.json", "w") as jf:
+		json.dump(compressed, jf)
+	return compressed
+
+# benchmarks for graphing liquidation and other thresholds
+def get_benchmarks(inputs):
+	benchmarks = {"init c-ratio":[],"courtesy call":[],"liquidation":[]}
+	for t in inputs["date_rng"]:
+		for key in benchmarks.keys():
+			benchmarks[key].append(inputs[key])
+	return benchmarks
 
 # iterate through the testing dictionary to count % liquidated, and % courtesy calls
 def summary(inputs, test):
@@ -93,9 +108,14 @@ if __name__ == "__main__":
 		"init c-ratio": 1.5,
 		"courtesy call": 1.25,
 		"liquidation": 1.1,
-		"start date": datetime.datetime(2021,1,1).replace(tzinfo=pytz.utc),
+		"start date": datetime.datetime(2019,1,1).replace(tzinfo=pytz.utc),
 		"end date": ohlc["btcusd"].index.max()
 	}
 
 	inputs["date_rng"] = pd.date_range(inputs["start date"], inputs["end date"])
-	run_test(inputs, ohlc)
+	test = run_test(inputs, ohlc)
+	compressed = compress_data()
+	pprint(compressed)
+
+
+
