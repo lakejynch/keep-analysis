@@ -106,9 +106,9 @@ if __name__ == "__main__":
 	# init parameters for analysis
 	inputs = {
 		"init c-ratio": 1.5,
-		"courtesy call": 1.25,
-		"liquidation": 1.1,
-		"start date": datetime.datetime(2019,1,1).replace(tzinfo=pytz.utc),
+		"courtesy call": 1.1,
+		"liquidation": 1.01,
+		"start date": datetime.datetime(2020,1,1).replace(tzinfo=pytz.utc),
 		"end date": ohlc["btcusd"].index.max()
 	}
 

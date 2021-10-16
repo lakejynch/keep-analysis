@@ -22,11 +22,13 @@ for key in ohlc.keys():
 # init parameters for analysis
 inputs = {
     "init c-ratio": 1.5,
-    "courtesy call": 1.25,
-    "liquidation": 1.1,
-    "start date": datetime.datetime(2019,1,1).replace(tzinfo=pytz.utc),
+    "courtesy call": 1.1,
+    "liquidation": 1.01,
+    "start date": datetime.datetime(2020,1,1).replace(tzinfo=pytz.utc),
     "end date": ohlc["btcusd"].index.max()
 }
+
+inputs["date_rng"] = pd.date_range(inputs["start date"], inputs["end date"])
 ```
 
 
@@ -38,28 +40,6 @@ benchmarks = main.get_benchmarks(inputs)
 ```
 
 
-    ---------------------------------------------------------------------------
-
-    KeyError                                  Traceback (most recent call last)
-
-    <ipython-input-3-4d49e976f8a0> in <module>
-          2 with open("data/small_test.json", "r") as jf:
-          3     test = json.load(jf)
-    ----> 4 benchmarks = main.get_benchmarks(inputs)
-    
-
-    ~\GitHub\keep-analysis\main.py in get_benchmarks(inputs)
-         62 def get_benchmarks(inputs):
-         63         benchmarks = {"init c-ratio":[],"courtesy call":[],"liquidation":[]}
-    ---> 64         for t in inputs["date_rng"]:
-         65                 for key in benchmarks.keys():
-         66                         benchmarks[key].append(inputs[key])
-    
-
-    KeyError: 'date_rng'
-
-
-
 ```python
 # summarize
 summary = main.summary(inputs, test)
@@ -68,10 +48,85 @@ summary_df.describe()
 ```
 
 
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Total Days</th>
+      <th>Days Below Courtesy Call</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>count</th>
+      <td>646.000000</td>
+      <td>646.000000</td>
+    </tr>
+    <tr>
+      <th>mean</th>
+      <td>323.500000</td>
+      <td>0.863777</td>
+    </tr>
+    <tr>
+      <th>std</th>
+      <td>186.628419</td>
+      <td>3.693701</td>
+    </tr>
+    <tr>
+      <th>min</th>
+      <td>1.000000</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>25%</th>
+      <td>162.250000</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>50%</th>
+      <td>323.500000</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>75%</th>
+      <td>484.750000</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>max</th>
+      <td>646.000000</td>
+      <td>36.000000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
 ```python
 liquidated = summary_df["Liquidated?"].loc[summary_df["Liquidated?"] == True].count()/summary_df["Liquidated?"].count()
 print("% of Positions Liquidated = {}%".format(round(liquidated*100,2)))
 ```
+
+    % of Positions Liquidated = 2.01%
+    
 
 
 ```python
@@ -95,7 +150,6 @@ fig.update_layout(
     yaxis_title = "C-Ratio"
 )
 fig.write_html("live_plot.html")
-#fig.show()
 ```
 
 See html file in repo for interactive chart
